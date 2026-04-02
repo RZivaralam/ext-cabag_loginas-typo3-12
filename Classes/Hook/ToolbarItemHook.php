@@ -15,7 +15,7 @@ namespace Cabag\CabagLoginas\Hook;
  * The TYPO3 project - inspiring people to share!
  */
 
-use PDO;
+use TYPO3\CMS\Core\Database\Connection;
 use TYPO3\CMS\Backend\Controller\BackendController;
 use TYPO3\CMS\Backend\Toolbar\ToolbarItemInterface;
 use TYPO3\CMS\Backend\Utility\IconUtility;
@@ -29,6 +29,7 @@ use TYPO3\CMS\Core\Site\SiteFinder;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\MathUtility;
+
 
 class ToolbarItemHook implements ToolbarItemInterface
 {
@@ -57,7 +58,7 @@ class ToolbarItemHook implements ToolbarItemInterface
 
         $toolbarMenu = array();
 
-        $title = $GLOBALS['LANG']->getLL('fe_users.tx_cabagloginas_loginas', true);
+        $title = $GLOBALS['LANG']->sL('LLL:EXT:cabag_loginas/Resources/Private/Language/locallang_db.xlf:fe_users.tx_cabagloginas_loginas');
         $ext_conf = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['cabag_loginas']);
         $defLinkText = trim($ext_conf['defLinkText']);
         if (empty($defLinkText) || strpos($defLinkText, '#') === false || strpos($defLinkText, 'password') !== false) {
@@ -70,10 +71,10 @@ class ToolbarItemHook implements ToolbarItemInterface
             ->getQueryBuilderForTable('fe_users');
         $this->users = $queryBuilder->select('*')
             ->from('fe_users')
-            ->where($queryBuilder->expr()->eq('email', $queryBuilder->createNamedParameter($email, PDO::PARAM_STR)))
+            ->where($queryBuilder->expr()->eq('email', $queryBuilder->createNamedParameter($email, Connection::PARAM_STR)))
             ->setMaxResults(15)
-            ->execute()
-            ->fetchAll();
+            ->executeQuery()
+            ->fetchAllAssociative();
 
         if (count($this->users)) {
             if (count($this->users) == 1) {
@@ -143,7 +144,7 @@ class ToolbarItemHook implements ToolbarItemInterface
                 ->where(
                     'fg.felogin_redirectPid != \'\'',
                     'fu.uid = ' . $user['uid']
-                )->execute()
+                )->executeQuery()
                 ->fetchAssociative();
 
             $parameterArray['redirecturl'] = $this->getRedirectUrl($userGroup['felogin_redirectPid'] ?? $user['pid']);
@@ -173,7 +174,7 @@ class ToolbarItemHook implements ToolbarItemInterface
     {
         $additionalClass = '';
         if (trim($title) === '') {
-            $title = $GLOBALS['LANG']->getLL('cabag_loginas.switchToFeuser', true);
+            $title = $GLOBALS['LANG']->sL('LLL:EXT:cabag_loginas/Resources/Private/Language/locallang_db.xlf:cabag_loginas.switchToFeuser');
         }
         //update 12
         $typo3Version=GeneralUtility::makeInstance(\TYPO3\CMS\Core\Information\Typo3Version::class);
@@ -218,11 +219,11 @@ class ToolbarItemHook implements ToolbarItemInterface
                 ->select('domainName', 'tx_cabagfileexplorer_redirect_to')
                 ->from('sys_domain')
                 ->where(
-                    $queryBuilder->expr()->eq('domainName', $queryBuilder->createNamedParameter($domainArray['host'], PDO::PARAM_STR))
+                    $queryBuilder->expr()->eq('domainName', $queryBuilder->createNamedParameter($domainArray['host'], Connection::PARAM_STR))
                 )
                 ->setMaxResults(1)
-                ->execute()
-                ->fetch();
+                ->executeQuery()
+                ->fetchAssociative();
         } else {
             $rowArray = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows(
                 'domainName, tx_cabagfileexplorer_redirect_to', 'sys_domain', 'hidden = 0 AND domainName = ' . $GLOBALS['TYPO3_DB']->fullQuoteStr($domainArray['host'], 'sys_domain'), '', '', 1

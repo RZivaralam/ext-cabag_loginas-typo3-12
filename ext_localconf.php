@@ -6,10 +6,6 @@ if (!defined('TYPO3')) {
 	die ('Access denied.');
 }
 
-// Hook for adding switch icon to website users
-if ((new \TYPO3\CMS\Core\Information\Typo3Version())->getMajorVersion() < 12) {
-	$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['typo3/class.db_list_extra.inc']['actions'][] = 'Cabag\CabagLoginas\Hook\RecordListHook';
-}
 
 // Hook to check for redirection
 $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_userauth.php']['postUserLookUp'][] = 'Cabag\CabagLoginas\Hook\PostUserLookupHook->postUserLookUp';
@@ -38,4 +34,3 @@ $GLOBALS['TYPO3_CONF_VARS']['SYS']['Objects'][TYPO3\CMS\Frontend\Middleware\Fron
 		'className' => Cabag\CabagLoginas\Service\LoginAsService::class
 	)
 );
-

@@ -8,7 +8,7 @@ use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\Restriction\HiddenRestriction;
 use TYPO3\CMS\Core\Database\Query\Restriction\DeletedRestriction;
 use TYPO3\CMS\Core\Authentication\AbstractAuthenticationService;
-
+ use TYPO3\CMS\Core\Database\Connection;
 /**
  * This file is part of the TYPO3 CMS project.
  *
@@ -29,13 +29,9 @@ class LoginAsService extends AbstractAuthenticationService
     public function getUser()
     {
         $row = false;
-        //update 12
-        if ((new \TYPO3\CMS\Core\Information\Typo3Version())->getMajorVersion() < 12) {
-            $cabagLoginasData = GeneralUtility::_GP('tx_cabagloginas');
-        }else{
+
             $request = &$GLOBALS['TYPO3_REQUEST'] ?? ServerRequestFactory::fromGlobals();
             $cabagLoginasData = $request->getParsedBody()['tx_cabagloginas'] ?? $request->getQueryParams()['tx_cabagloginas'] ?? null;
-        }   
 
         if (isset($cabagLoginasData['verification'])) {
             $ses_id = $_COOKIE['be_typo_user'];
@@ -56,13 +52,15 @@ class LoginAsService extends AbstractAuthenticationService
                         ->where(
                             $queryBuilder->expr()->eq('uid', $queryBuilder->createNamedParameter($cabagLoginasData['userid'], \PDO::PARAM_INT))
                         )
-                        ->execute()
-                        ->fetchAll();
+                        ->executeQuery()
+                        ->fetchAllAssociative();
                 if ($user[0]) {
                     $row = $user[0];
                     $this->rowdata = $user[0];
-                    if (is_object($GLOBALS['TSFE']->fe_user)) {
-                        $GLOBALS['TSFE']->fe_user->setKey('ses', 'tx_cabagloginas', true);
+                    $frontendUser=$request->getAttribute('frontend.user');
+                    if (is_object($frontendUser)) {
+                            $frontendUser->setKey('ses', 'tx_cabagloginas', true);
+                            $frontendUser->storeSessionData();
                     }
                 }
             }

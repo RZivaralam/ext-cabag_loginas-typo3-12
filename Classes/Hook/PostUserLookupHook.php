@@ -46,14 +46,13 @@ class PostUserLookupHook {
         if (($GLOBALS['TYPO3_REQUEST'] ?? null) instanceof ServerRequestInterface
             && ApplicationType::fromRequest($GLOBALS['TYPO3_REQUEST'])->isFrontend()
         ) {
-            if (!empty($GLOBALS['TSFE']->fe_user->user['uid'])) {
-                if ((new \TYPO3\CMS\Core\Information\Typo3Version())->getMajorVersion() < 12) {
-                    $cabagLoginasData = GeneralUtility::_GP('Cabag\CabagLoginas\Hook\ToolbarItemHook');
-                }else{
+             $request = &$GLOBALS['TYPO3_REQUEST'] ?? ServerRequestFactory::fromGlobals();
+             $frontendUser=$request->getAttribute('frontend.user');
+             
+            if (isset($frontendUser) && !empty($frontendUser->user['uid'])) {
                     $request = &$GLOBALS['TYPO3_REQUEST'] ?? ServerRequestFactory::fromGlobals();
                     $cabagLoginasData = $request->getParsedBody()['Cabag\CabagLoginas\Hook\ToolbarItemHook'] ?? $request->getQueryParams()['Cabag\CabagLoginas\Hook\ToolbarItemHook'] ?? null;
-                }
-                
+               
                 if (!empty($cabagLoginasData['redirecturl'])) {
                     $partsArray = parse_url(rawurldecode($cabagLoginasData['redirecturl']));
                     if (strpos(GeneralUtility::getIndpEnv('TYPO3_SITE_URL'), $partsArray['scheme'] . '://' . $partsArray['host'] . '/') === false) {
