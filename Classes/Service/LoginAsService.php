@@ -50,7 +50,7 @@ class LoginAsService extends AbstractAuthenticationService
                         ->select('*')
                         ->from('fe_users')
                         ->where(
-                            $queryBuilder->expr()->eq('uid', $queryBuilder->createNamedParameter($cabagLoginasData['userid'], \PDO::PARAM_INT))
+                            $queryBuilder->expr()->eq('uid', $queryBuilder->createNamedParameter($cabagLoginasData['userid'], Connection::PARAM_INT))
                         )
                         ->executeQuery()
                         ->fetchAllAssociative();
